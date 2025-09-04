@@ -21,9 +21,9 @@
         <p id="currentDate" class="text-center text-sm font-semibold text-gray-400 mb-6"></p>
 
         <!-- Main Game Area -->
-        <div class="flex flex-col sm:flex-row items-center justify-center sm:space-x-2 space-y-2 sm:space-y-0 mb-6">
+        <div class="flex flex-row items-center justify-center space-x-2 mb-6">
             <span id="startLetters" class="flex-shrink-0 flex items-center justify-center p-4 text-3xl font-bold bg-indigo-500 text-white rounded-lg shadow-inner"></span>
-            <input id="middleInput" type="text" class="w-full sm:flex-grow p-4 text-3xl text-center border-2 border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-4 focus:ring-indigo-200 transition-colors" maxlength="12" placeholder="...">
+            <input id="middleInput" type="text" class="w-full flex-grow p-4 text-3xl text-center border-2 border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-4 focus:ring-indigo-200 transition-colors" maxlength="12" placeholder="...">
             <span id="endLetters" class="flex-shrink-0 flex items-center justify-center p-4 text-3xl font-bold bg-indigo-500 text-white rounded-lg shadow-inner"></span>
         </div>
 
@@ -34,16 +34,16 @@
             </button>
         </div>
         <div id="messageBox" class="text-center text-sm font-semibold mb-8 h-6"></div>
-
+        
         <!-- Words Found List -->
         <div class="border-t-2 border-gray-200 pt-6">
             <h2 class="text-2xl font-bold text-center mb-4 text-gray-700">Words Found <span id="wordCount" class="text-indigo-500">(0/0)</span></h2>
             <ul id="foundWordsList" class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center"></ul>
-
+            
             <h2 class="text-2xl font-bold text-center mt-6 mb-4 text-gray-700">Challenge Words <span id="challengeWordCount" class="text-green-500">(0)</span></h2>
             <ul id="foundChallengeWordsList" class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center"></ul>
         </div>
-
+        
         <!-- Separator and Share Button -->
         <div class="border-t-2 border-gray-200 mt-4 pt-4">
             <div class="flex justify-center">
@@ -53,10 +53,10 @@
             </div>
         </div>
     </div>
-
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-                    const dailyData = [
+            const dailyData = [
                 {
                     date: '2025-09-02',
                     start: "div",
@@ -127,9 +127,9 @@
             const getTodaysWords = () => {
                 const today = new Date();
                 const todayString = getLocalDateString(today);
-
+                
                 const foundSet = dailyData.find(d => d.date === todayString);
-
+                
                 // Fallback to the first dataset if today's isn't found
                 return foundSet || dailyData[0];
             };
@@ -158,7 +158,7 @@
                     listElement.appendChild(li);
                 });
             };
-
+            
             // Update the word count display
             const updateWordCount = () => {
                 wordCount.textContent = `(${foundWords.length}/${currentSet.solutions.length})`;
@@ -184,20 +184,20 @@
                 currentSet = getTodaysWords();
                 const today = new Date();
                 localStorageKey = 'wordfill-progress-' + getLocalDateString(today);
-
+                
                 originalStart = currentSet.start;
                 originalEnd = currentSet.end;
-
+                
                 const savedProgress = JSON.parse(localStorage.getItem(localStorageKey));
                 if (savedProgress) {
                     foundWords = savedProgress.foundWords || [];
                     foundChallengeWords = savedProgress.foundChallengeWords || [];
                     hintedWords = savedProgress.hintedWords || [];
                 }
-
+                
                 startLettersEl.textContent = originalStart;
                 endLettersEl.textContent = originalEnd;
-
+                
                 const options = { year: 'numeric', month: 'long', day: 'numeric' };
                 currentDateEl.textContent = today.toLocaleDateString('en-US', options);
 
@@ -206,7 +206,7 @@
                 renderWords(foundChallengeWords, foundChallengeWordsList, true);
                 updateButtonState();
             };
-
+            
             const showMessage = (text, type = 'info') => {
                 messageBox.textContent = text;
                 if (type === 'success') {
@@ -227,7 +227,7 @@
                 if (!foundList.includes(word)) {
                     foundList.push(word);
                     foundList.sort();
-
+                    
                     if (isChallenge) {
                         renderWords(foundChallengeWords, foundChallengeWordsList, true);
                     } else {
@@ -241,12 +241,12 @@
             const handleGuess = () => {
                 const middle = middleInput.value.toLowerCase().trim();
                 const guessedWord = startLettersEl.textContent + middle + endLettersEl.textContent;
-
+                
                 if (middle === '') {
                     showMessage('Please enter some letters.', 'info');
                     return;
                 }
-
+                
                 if (foundWords.includes(guessedWord) || foundChallengeWords.includes(guessedWord)) {
                     showMessage('You already found that word!', 'info');
                     return;
@@ -271,9 +271,8 @@
                 } else {
                     showMessage('Incorrect. Try again.', 'error');
                 }
-
+                
                 middleInput.value = '';
-                middleInput.focus();
             };
 
             const handleHint = () => {
@@ -281,7 +280,7 @@
                 if (unfoundSolutions.length === 0) {
                     return;
                 }
-
+                
                 // If this is the first hint, set the word to be hinted
                 if (currentHintedWord === null) {
                     currentHintedWord = unfoundSolutions[0];
@@ -294,9 +293,10 @@
                 const middlePart = currentHintedWord.substring(originalStart.length, currentHintedWord.length - originalEnd.length);
                 const currentStart = startLettersEl.textContent;
                 const currentEnd = endLettersEl.textContent;
+                const revealedLettersCount = (currentStart.length - originalStart.length) + (currentEnd.length - originalEnd.length);
 
                 // Check if there's only one letter left to reveal
-                if ((currentStart.length + currentEnd.length - originalStart.length - originalEnd.length) >= middlePart.length - 1) {
+                if (revealedLettersCount >= middlePart.length - 1) {
                     showMessage('One letter remaining! No more hints available.', 'info');
                     return;
                 }
@@ -320,9 +320,9 @@
                 const foundCount = foundWords.length;
                 const totalCount = currentSet.solutions.length;
                 const today = currentDateEl.textContent;
-
-                let shareText = `Word Fill (${today})\n${foundCount}/${totalCount} found!\n\n`;
-
+                
+                let shareText = `Word Fill (${today})\n${foundCount}/${totalCount} found!\n`;
+                
                 currentSet.solutions.forEach(word => {
                     if (foundWords.includes(word)) {
                         if (hintedWords.includes(word)) {
@@ -334,13 +334,13 @@
                         shareText += '⬜';
                     }
                 });
-
+                
                 if (foundChallengeWords.length > 0) {
                     shareText += `\n\nChallenge Words Found: ${foundChallengeWords.length}`;
                 }
-
+                
                 shareText += `\nhttps://wordfill.app`;
-
+                
                 const el = document.createElement('textarea');
                 el.value = shareText;
                 el.setAttribute('readonly', '');
@@ -369,4 +369,3 @@
     </script>
 </body>
 </html>
-
