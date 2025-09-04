@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Fill</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #1e293b;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-xl p-8 max-w-2xl w-full">
+        <h1 class="text-4xl font-bold text-center mb-2 text-indigo-600">Word Fill</h1>
+        <p class="text-center text-gray-500 mb-2">Fill in the middle to complete the word!</p>
+        <p id="currentDate" class="text-center text-sm font-semibold text-gray-400 mb-6"></p>
+
+        <!-- Main Game Area -->
+        <div class="flex flex-col sm:flex-row items-center justify-center sm:space-x-2 space-y-2 sm:space-y-0 mb-6">
+            <span id="startLetters" class="flex-shrink-0 flex items-center justify-center p-4 text-3xl font-bold bg-indigo-500 text-white rounded-lg shadow-inner"></span>
+            <input id="middleInput" type="text" class="w-full sm:flex-grow p-4 text-3xl text-center border-2 border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-4 focus:ring-indigo-200 transition-colors" maxlength="12" placeholder="...">
+            <span id="endLetters" class="flex-shrink-0 flex items-center justify-center p-4 text-3xl font-bold bg-indigo-500 text-white rounded-lg shadow-inner"></span>
+        </div>
+
+        <!-- Buttons and Message -->
+        <div class="flex space-x-2 mb-4">
+            <button id="submitButton" class="bg-indigo-600 flex-grow hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-200">
+                Submit
+            </button>
+        </div>
+        <div id="messageBox" class="text-center text-sm font-semibold mb-8 h-6"></div>
+
+        <!-- Words Found List -->
+        <div class="border-t-2 border-gray-200 pt-6">
+            <h2 class="text-2xl font-bold text-center mb-4 text-gray-700">Words Found <span id="wordCount" class="text-indigo-500">(0/0)</span></h2>
+            <ul id="foundWordsList" class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center"></ul>
+
+            <h2 class="text-2xl font-bold text-center mt-6 mb-4 text-gray-700">Challenge Words <span id="challengeWordCount" class="text-green-500">(0)</span></h2>
+            <ul id="foundChallengeWordsList" class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center"></ul>
+        </div>
+
+        <!-- Separator and Share Button -->
+        <div class="border-t-2 border-gray-200 mt-4 pt-4">
+            <div class="flex justify-center">
+                <button id="shareButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-200 w-full sm:w-1/2">
+                    Share My Results
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+                    const dailyData = [
+                {
+                    date: '2025-09-02',
+                    start: "div",
+                    end: "ed",
+                    solutions: ['diverged', 'diversified', 'diverted', 'divested', 'divided', 'divorced', 'divulged', 'divined'],
+                    challengeSolutions: ['divagated', 'divaricated', 'dived', 'divelled', 'diversicolored', 'divinified', 'divinised', 'divinized', 'divulgated', 'divulsed', 'divvied']
+                },
+                {
+                    date: '2025-09-03',
+                    start: "me",
+                    end: "ion",
+                    solutions: ['medallion', 'mediation', 'medication', 'meditation', 'mention'],
+                    challengeSolutions: ['measuration', 'mechanicalization', 'mechanization', 'mechanoreception', 'medialization', 'mediatisation', 'mediatization', 'medicamentation', 'medisection', 'mediterraneanization', 'mediumization', 'medullation', 'medullization', 'melanization', 'melioration', 'mellification', 'melodion', 'melodramatization', 'memoration', 'memorialisation', 'memorialization', 'memorization', 'mendication', 'menstruation', 'mensuration', 'mentalization', 'mentation', 'mentimutation', 'mercerization', 'mercuration', 'mercurialisation', 'mercurialization', 'mercurification', 'mercurization', 'meridion', 'merlion', 'mermithization', 'merorganization', 'mersion', 'mesymnion', 'mesioclusion', 'mesion', 'mesioversion', 'mesmerisation', 'mesmerization', 'mesognathion', 'mesolimnion', 'metacromion', 'metageitnion', 'metalization', 'metallification', 'metallisation', 'metallization', 'metamerization', 'metanotion', 'meteorization', 'methylation', 'methodization', 'metopion', 'metrication', 'metrification', 'metrization']
+                },
+                {
+                    date: '2025-09-04',
+                    start: "bu",
+                    end: "ies",
+                    solutions: ['buddies', 'bullies', 'bunnies', 'bureaucracies', 'buries', 'butterflies'],
+                    challengeSolutions: ['bubbies', 'bubblies', 'budgies', 'buffooneries', 'buggeries', 'buggies', 'bulies', 'bullaries', 'bunchberries', 'bundies', 'buoyancies', 'burdies', 'burglaries', 'burgundies', 'burlies', 'burnies', 'bursaries', 'busbies', 'bushbodies', 'busybodies', 'busies', 'butcheries', 'butleries', 'butteries', 'butties', 'buttinskies', 'buxerries', 'buzzies']
+                },
+                {
+                    date: '2025-09-05',
+                    start: "pri",
+                    end: "ed",
+                    solutions: ['pricked', 'priced', 'prided', 'primed', 'principled', 'printed', 'prioritized', 'privileged', 'prized'],
+                    challengeSolutions: ['prickled', 'prideweed', 'pried', 'priested', 'prigged', 'prilled', 'primaried', 'primmed', 'primped', 'primrosed', 'princified', 'prinked', 'prised', 'prismed', 'prisoned', 'privateered', 'privatized']
+                },
+                {
+                    date: '2025-09-06',
+                    start: "tra",
+                    end: "tion",
+                    solutions: ['traction', 'tradition', 'transaction', 'transcription', 'transformation', 'transition', 'translation', 'transportation'],
+                    challengeSolutions: ['trabeation', 'trabeculation', 'tracheation', 'tractation', 'tractoration', 'tractorization', 'traduction', 'tragedization', 'trajection', 'tralatition', 'tranquilization', 'tranquillization', 'transaccidentation', 'transamination', 'transanimation', 'transcendentalisation', 'transcendentalization', 'transcoloration', 'transcolouration', 'transculturation', 'transcurvation', 'transduction', 'transection', 'transelementation', 'transfiguration', 'transfiltration', 'transfixation', 'transforation', 'transfretation', 'transgeneration', 'transhumanation', 'transillumination', 'transincorporation', 'transistorization', 'transliteration', 'translocalization', 'translocation', 'transmateriation', 'transmentation', 'transmethylation', 'transmigration', 'transmogrification', 'transmutation', 'transnatation', 'transnaturation', 'transnihilation', 'transpeciation', 'transpenetration', 'transpeptidation', 'transpiration', 'transplantation', 'transposition', 'transrectification', 'transubstantiation', 'transudation', 'transumption', 'transvaluation', 'transvasation', 'transvection', 'transverbation', 'transverberation', 'transvolation', 'traumatization']
+                }
+            ];
+
+            const startLettersEl = document.getElementById('startLetters');
+            const endLettersEl = document.getElementById('endLetters');
+            const middleInput = document.getElementById('middleInput');
+            const submitButton = document.getElementById('submitButton');
+            const shareButton = document.getElementById('shareButton');
+            const messageBox = document.getElementById('messageBox');
+            const foundWordsList = document.getElementById('foundWordsList');
+            const wordCount = document.getElementById('wordCount');
+            const foundChallengeWordsList = document.getElementById('foundChallengeWordsList');
+            const challengeWordCount = document.getElementById('challengeWordCount');
+            const currentDateEl = document.getElementById('currentDate');
+
+            let foundWords = [];
+            let foundChallengeWords = [];
+            let hintedWords = []; // New array to track words found with a hint
+            let currentSet;
+            let localStorageKey;
+            let originalStart, originalEnd;
+            let hintCount = 0;
+            let currentHintedWord = null;
+
+            // Helper function to get the local date in YYYY-MM-DD format
+            const getLocalDateString = (date) => {
+                const year = date.getFullYear();
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const day = date.getDate().toString().padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            // Function to find the correct word set for the current day
+            const getTodaysWords = () => {
+                const today = new Date();
+                const todayString = getLocalDateString(today);
+
+                const foundSet = dailyData.find(d => d.date === todayString);
+
+                // Fallback to the first dataset if today's isn't found
+                return foundSet || dailyData[0];
+            };
+
+            // Save progress to local storage
+            const saveProgress = () => {
+                const progress = {
+                    foundWords: foundWords,
+                    foundChallengeWords: foundChallengeWords,
+                    hintedWords: hintedWords
+                };
+                localStorage.setItem(localStorageKey, JSON.stringify(progress));
+            };
+
+            // Render a list of words to the UI
+            const renderWords = (words, listElement, isChallenge = false) => {
+                listElement.innerHTML = '';
+                words.forEach(word => {
+                    const li = document.createElement('li');
+                    li.textContent = word;
+                    if (isChallenge) {
+                        li.className = 'p-2 bg-green-100 rounded-md text-green-700 font-semibold shadow-inner';
+                    } else {
+                        li.className = 'p-2 bg-indigo-100 rounded-md text-gray-700 font-semibold shadow-inner';
+                    }
+                    listElement.appendChild(li);
+                });
+            };
+
+            // Update the word count display
+            const updateWordCount = () => {
+                wordCount.textContent = `(${foundWords.length}/${currentSet.solutions.length})`;
+                challengeWordCount.textContent = `(${foundChallengeWords.length})`;
+            };
+
+            const updateButtonState = () => {
+                if (foundWords.length === currentSet.solutions.length) {
+                    shareButton.textContent = 'Share My Results';
+                    shareButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+                    shareButton.classList.add('bg-green-500', 'hover:bg-green-600');
+                    shareButton.onclick = handleShare;
+                } else {
+                    shareButton.textContent = 'Hint';
+                    shareButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+                    shareButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+                    shareButton.onclick = handleHint;
+                }
+            };
+
+            // Initialize the game with today's data and load progress
+            const initGame = () => {
+                currentSet = getTodaysWords();
+                const today = new Date();
+                localStorageKey = 'wordfill-progress-' + getLocalDateString(today);
+
+                originalStart = currentSet.start;
+                originalEnd = currentSet.end;
+
+                const savedProgress = JSON.parse(localStorage.getItem(localStorageKey));
+                if (savedProgress) {
+                    foundWords = savedProgress.foundWords || [];
+                    foundChallengeWords = savedProgress.foundChallengeWords || [];
+                    hintedWords = savedProgress.hintedWords || [];
+                }
+
+                startLettersEl.textContent = originalStart;
+                endLettersEl.textContent = originalEnd;
+
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                currentDateEl.textContent = today.toLocaleDateString('en-US', options);
+
+                updateWordCount();
+                renderWords(foundWords, foundWordsList, false);
+                renderWords(foundChallengeWords, foundChallengeWordsList, true);
+                updateButtonState();
+            };
+
+            const showMessage = (text, type = 'info') => {
+                messageBox.textContent = text;
+                if (type === 'success') {
+                    messageBox.className = 'text-center text-sm font-semibold text-green-600 h-6';
+                    middleInput.classList.add('border-green-400');
+                    setTimeout(() => middleInput.classList.remove('border-green-400'), 500);
+                } else if (type === 'error') {
+                    messageBox.className = 'text-center text-sm font-semibold text-red-600 h-6';
+                    middleInput.classList.add('border-red-400');
+                    setTimeout(() => middleInput.classList.remove('border-red-400'), 500);
+                } else {
+                    messageBox.className = 'text-center text-sm font-semibold text-gray-500 h-6';
+                }
+            };
+
+            const addFoundWord = (word, isChallenge = false) => {
+                let foundList = isChallenge ? foundChallengeWords : foundWords;
+                if (!foundList.includes(word)) {
+                    foundList.push(word);
+                    foundList.sort();
+
+                    if (isChallenge) {
+                        renderWords(foundChallengeWords, foundChallengeWordsList, true);
+                    } else {
+                        renderWords(foundWords, foundWordsList, false);
+                    }
+                    updateWordCount();
+                    saveProgress();
+                }
+            };
+
+            const handleGuess = () => {
+                const middle = middleInput.value.toLowerCase().trim();
+                const guessedWord = startLettersEl.textContent + middle + endLettersEl.textContent;
+
+                if (middle === '') {
+                    showMessage('Please enter some letters.', 'info');
+                    return;
+                }
+
+                if (foundWords.includes(guessedWord) || foundChallengeWords.includes(guessedWord)) {
+                    showMessage('You already found that word!', 'info');
+                    return;
+                }
+
+                if (currentSet.solutions.includes(guessedWord)) {
+                    addFoundWord(guessedWord, false);
+                    showMessage('Correct!', 'success');
+                    startLettersEl.textContent = originalStart;
+                    endLettersEl.textContent = originalEnd;
+                    hintCount = 0;
+                    currentHintedWord = null;
+                    updateButtonState();
+                } else if (currentSet.challengeSolutions.includes(guessedWord)) {
+                    addFoundWord(guessedWord, true);
+                    showMessage('Challenge word found!', 'success');
+                    startLettersEl.textContent = originalStart;
+                    endLettersEl.textContent = originalEnd;
+                    hintCount = 0;
+                    currentHintedWord = null;
+                    updateButtonState();
+                } else {
+                    showMessage('Incorrect. Try again.', 'error');
+                }
+
+                middleInput.value = '';
+                middleInput.focus();
+            };
+
+            const handleHint = () => {
+                const unfoundSolutions = currentSet.solutions.filter(word => !foundWords.includes(word));
+                if (unfoundSolutions.length === 0) {
+                    return;
+                }
+
+                // If this is the first hint, set the word to be hinted
+                if (currentHintedWord === null) {
+                    currentHintedWord = unfoundSolutions[0];
+                    if (!hintedWords.includes(currentHintedWord)) {
+                        hintedWords.push(currentHintedWord);
+                        saveProgress();
+                    }
+                }
+
+                const middlePart = currentHintedWord.substring(originalStart.length, currentHintedWord.length - originalEnd.length);
+                const currentStart = startLettersEl.textContent;
+                const currentEnd = endLettersEl.textContent;
+
+                // Check if there's only one letter left to reveal
+                if ((currentStart.length + currentEnd.length - originalStart.length - originalEnd.length) >= middlePart.length - 1) {
+                    showMessage('One letter remaining! No more hints available.', 'info');
+                    return;
+                }
+
+                if (hintCount % 2 === 0) {
+                    // Add a letter to the start
+                    const nextChar = middlePart.charAt(Math.floor(hintCount / 2));
+                    startLettersEl.textContent = currentStart + nextChar;
+                    showMessage('Hint: A letter has been added to the start.', 'info');
+                } else {
+                    // Add a letter to the end
+                    const nextChar = middlePart.charAt(middlePart.length - 1 - Math.floor(hintCount / 2));
+                    endLettersEl.textContent = nextChar + currentEnd;
+                    showMessage('Hint: A letter has been added to the end.', 'info');
+                }
+
+                hintCount++;
+            };
+
+            const handleShare = () => {
+                const foundCount = foundWords.length;
+                const totalCount = currentSet.solutions.length;
+                const today = currentDateEl.textContent;
+
+                let shareText = `Word Fill (${today})\n${foundCount}/${totalCount} found!\n\n`;
+
+                currentSet.solutions.forEach(word => {
+                    if (foundWords.includes(word)) {
+                        if (hintedWords.includes(word)) {
+                            shareText += '🟨';
+                        } else {
+                            shareText += '🟩';
+                        }
+                    } else {
+                        shareText += '⬜';
+                    }
+                });
+
+                if (foundChallengeWords.length > 0) {
+                    shareText += `\n\nChallenge Words Found: ${foundChallengeWords.length}`;
+                }
+
+                shareText += `\nwordfill.app`;
+
+                const el = document.createElement('textarea');
+                el.value = shareText;
+                el.setAttribute('readonly', '');
+                el.style.position = 'absolute';
+                el.style.left = '-9999px';
+                document.body.appendChild(el);
+                el.select();
+                try {
+                    document.execCommand('copy');
+                    showMessage('Results copied to clipboard!', 'success');
+                } catch (err) {
+                    showMessage('Failed to copy. Please try manually.', 'error');
+                }
+                document.body.removeChild(el);
+            };
+
+            submitButton.addEventListener('click', handleGuess);
+            middleInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    handleGuess();
+                }
+            });
+
+            initGame();
+        });
+    </script>
+</body>
+</html>
